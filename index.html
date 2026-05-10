@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTUMED · Payment Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nejm-red: #C0392B;
+    --nejm-dark: #1A1A1A;
+    --bg: #FFFFFF;
+    --text: #1A1A1A;
+    --text-secondary: #4A4A4A;
+    --text-muted: #888888;
+    --border: #D6D6D6;
+    --border-light: #E9E9E9;
+    --gold: #B8860B;
+    --silver: #6B6B6B;
+    --bronze: #8B5E3C;
+    --warm-bg: #F9F7F4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Source Sans 3', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .header { border-bottom: 3px solid var(--nejm-red); }
+
+  .header-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 20px 24px 12px;
+  }
+
+  .header-brand {
+    font-family: 'Crimson Text', Georgia, serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--nejm-red);
+  }
+
+  .header-subtitle {
+    font-family: 'Crimson Text', serif;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-muted);
+  }
+
+  .countdown-bar {
+    background: var(--nejm-dark);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .countdown-label {
+    font-family: 'Crimson Text', serif;
+    font-size: 14px;
+    font-style: italic;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .countdown-digits {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .countdown-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .countdown-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 600;
+    color: white;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    padding: 4px 10px;
+    min-width: 52px;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .countdown-txt {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 4px;
+  }
+
+  .countdown-sep {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.2);
+    margin-bottom: 16px;
+  }
+
+  .countdown-expired {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--nejm-red);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .progress-section {
+    padding: 20px 24px;
+    max-width: 800px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .progress-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .progress-label {
+    font-family: 'Crimson Text', serif;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .progress-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--nejm-red);
+  }
+
+  .progress-track {
+    height: 6px;
+    background: var(--border-light);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--nejm-red);
+    border-radius: 3px;
+    transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .progress-counts {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .meta-bar {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    padding: 12px 24px;
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+
+  .meta-item strong {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+
+  .columns {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 16px 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .column { min-width: 0; }
+
+  .column-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 2px solid var(--nejm-dark);
+    margin-bottom: 2px;
+  }
+
+  .column-title {
+    font-family: 'Crimson Text', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .column-count {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .person-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.15s;
+    animation: rowIn 0.35s ease both;
+  }
+
+  .person-row:hover { background: var(--warm-bg); }
+
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateX(-6px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .rank {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    min-width: 30px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .rank.gold { color: var(--gold); font-size: 15px; }
+  .rank.silver { color: var(--silver); font-size: 15px; }
+  .rank.bronze { color: var(--bronze); font-size: 15px; }
+
+  .person-info { flex: 1; min-width: 0; }
+
+  .person-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .person-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  .person-right {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .elapsed-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .pay-datetime {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .status-tag {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+
+  .status-tag.pending {
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .status-tag.overdue {
+    color: var(--nejm-red);
+    border: 1px solid var(--nejm-red);
+  }
+
+  .empty-msg {
+    padding: 20px 16px;
+    text-align: center;
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 28px 24px 32px;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-light);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.8;
+  }
+
+  .footer .title {
+    font-family: 'Crimson Text', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--nejm-red);
+    display: block;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  .footer .copy {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .footer .sep {
+    margin: 0 6px;
+    opacity: 0.4;
+  }
+
+  @media (max-width: 640px) {
+    .columns { grid-template-columns: 1fr; gap: 24px; }
+    .header-top { flex-direction: column; gap: 2px; padding: 16px 16px 10px; }
+    .countdown-bar { padding: 14px 16px; gap: 16px; }
+    .countdown-num { font-size: 22px; min-width: 42px; padding: 3px 8px; }
+    .countdown-label { font-size: 12px; }
+    .progress-section { padding: 16px; }
+    .meta-bar { gap: 12px; padding: 10px 16px; }
+    .person-row { padding: 9px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-brand">NTUMED</div>
+    <div class="header-subtitle">Shared Note Money</div>
+  </div>
+</div>
+
+<div class="countdown-bar" id="countdown-bar"></div>
+
+<div class="progress-section">
+  <div class="progress-stats">
+    <span class="progress-label">Collection Progress</span>
+    <span class="progress-pct" id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="progress-counts" id="progress-counts"></div>
+</div>
+
+<div class="meta-bar" id="meta-bar"></div>
+
+<div class="columns" id="columns"></div>
+
+<div class="footer">
+  <span class="title">Pay Money Thank You</span>
+  <span class="copy">&copy; 2026 hikarimusic<span class="sep">|</span>All rights reserved.</span>
+</div>
+
+<script>
+// ============================================================
+//  DATA — edit here
+// ============================================================
+
+var START_TIME  = '2026-05-10T23:38:00+08:00';
+var DEADLINE    = '2026-05-17T23:59:00+08:00';
+var LAST_UPDATE = '2026-05-11T01:20:00+08:00';
+
+// [name, paidTimeISO or null]
+var PEOPLE = [
+  ['蔡奇凝', null],
+  ['蘇泓逸', null],
+  ['楊承寯', null],
+  ['陳泓睿', null],
+  ['黃增稊', null],
+  ['陳柏翰', null],
+  ['許庭瑄', null],
+  ['李采璇', null],
+  ['林維德', null],
+  ['賴子聿', '2026-05-11T00:05:00+08:00'],
+  ['黃文辰', null],
+  ['蔡祐銘', '2026-05-10T23:44:00+08:00'],
+  ['高晴佑', null],
+  ['黃鈺哲', null],
+  ['張帛峰', null],
+  ['許皓崴', null],
+  ['賴冠愷', null],
+  ['葉家瑋', null],
+  ['李其諺', null],
+  ['廖珮妤', '2026-05-10T23:40:00+08:00'],
+  ['詹蕙心', null],
+  ['周承勳', null],
+  ['彭柏棣', null],
+  ['王冠勛', null],
+  ['吳文洋', null],
+  ['張宸禎', null],
+  ['劉育維', '2026-05-10T23:51:00+08:00'],
+  ['林偉琪', null],
+  ['胡栩瑩', null],
+  ['黃心姷', null],
+  ['顏嘉萱', null],
+  ['朱昱蓁', null],
+  ['劉雅蕙', null],
+  ['賴彥均', null],
+  ['楊于絜', null],
+  ['邱墨林', '2026-05-10T23:46:00+08:00'],
+  ['蔡睿文', null],
+  ['蔡承霖', null],
+  ['陳淳益', null],
+  ['楊容榕', null],
+  ['黃品誠', null],
+  ['林鎧言', null],
+  ['張淵荏', null],
+  ['李有維', null],
+  ['莊閔鈞', null],
+  ['吳羿玟', null],
+  ['黃致心', null],
+  ['葉侑哲', '2026-05-10T23:45:00+08:00'],
+  ['郭彥晴', null],
+  ['羅晴',   '2026-05-11T00:02:00+08:00'],
+  ['鄭博謙', null],
+  ['康瑋麟', '2026-05-10T23:40:00+08:00'],
+  ['許芷寧', null],
+  ['楊鈞傑', null],
+  ['黃柏誠', null],
+  ['洪唯康', null],
+  ['張耕維', null],
+  ['黃品儒', null],
+  ['徐凡軒', null],
+  ['陳君泓', null],
+  ['趙柏儒', null],
+  ['張鈞翔', null],
+  ['趙修毅', null],
+  ['潘勝全', null],
+  ['蕭百修', '2026-05-10T23:46:00+08:00'],
+  ['劉叡嶸', null],
+  ['徐謙弘', '2026-05-10T23:59:00+08:00'],
+  ['莊鈞淇', null],
+  ['白凱文', null],
+  ['胡項淵', null],
+  ['邱雋壹', null],
+  ['張晏承', null],
+  ['王韻筑', null],
+  ['黃品元', null],
+];
+
+// ============================================================
+//  ENGINE
+// ============================================================
+
+var startDate    = new Date(START_TIME);
+var deadlineDate = new Date(DEADLINE);
+var updateDate   = new Date(LAST_UPDATE);
+
+function elapsed(from, to) {
+  var diff = to - from;
+  if (diff < 0) diff = 0;
+  var d = Math.floor(diff / 86400000);
+  var h = Math.floor((diff % 86400000) / 3600000);
+  var m = Math.floor((diff % 3600000) / 60000);
+  var s = Math.floor((diff % 60000) / 1000);
+  if (d > 0) return d + 'd ' + h + 'h ' + m + 'm';
+  if (h > 0) return h + 'h ' + m + 'm ' + s + 's';
+  return m + 'm ' + s + 's';
+}
+
+function fmtDate(d) {
+  return String(d.getMonth()+1).padStart(2,'0') + '/' +
+         String(d.getDate()).padStart(2,'0') + ' ' +
+         String(d.getHours()).padStart(2,'0') + ':' +
+         String(d.getMinutes()).padStart(2,'0');
+}
+
+function updateCountdown() {
+  var now = new Date();
+  var bar = document.getElementById('countdown-bar');
+  var diff = deadlineDate - now;
+
+  if (diff <= 0) {
+    bar.innerHTML = '<span class="countdown-expired">Deadline Passed \u2014 Collection Closed</span>';
+    return;
+  }
+
+  var d = Math.floor(diff / 86400000);
+  var h = Math.floor((diff % 86400000) / 3600000);
+  var m = Math.floor((diff % 3600000) / 60000);
+  var s = Math.floor((diff % 60000) / 1000);
+
+  bar.innerHTML =
+    '<span class="countdown-label">Time Remaining</span>' +
+    '<div class="countdown-digits">' +
+      '<div class="countdown-unit"><div class="countdown-num">' + String(d).padStart(2,'0') + '</div><div class="countdown-txt">Days</div></div>' +
+      '<span class="countdown-sep">:</span>' +
+      '<div class="countdown-unit"><div class="countdown-num">' + String(h).padStart(2,'0') + '</div><div class="countdown-txt">Hrs</div></div>' +
+      '<span class="countdown-sep">:</span>' +
+      '<div class="countdown-unit"><div class="countdown-num">' + String(m).padStart(2,'0') + '</div><div class="countdown-txt">Min</div></div>' +
+      '<span class="countdown-sep">:</span>' +
+      '<div class="countdown-unit"><div class="countdown-num">' + String(s).padStart(2,'0') + '</div><div class="countdown-txt">Sec</div></div>' +
+    '</div>';
+}
+
+function rankLabel(rank) {
+  if (rank === 1) return '1st';
+  if (rank === 2) return '2nd';
+  if (rank === 3) return '3rd';
+  return rank + 'th';
+}
+
+function rankClass(rank) {
+  if (rank === 1) return 'gold';
+  if (rank === 2) return 'silver';
+  if (rank === 3) return 'bronze';
+  return '';
+}
+
+function render() {
+  var now = new Date();
+  var isExpired = now >= deadlineDate;
+
+  var paid = PEOPLE
+    .filter(function(p) { return p[1]; })
+    .map(function(p) { return { name: p[0], time: new Date(p[1]) }; })
+    .sort(function(a, b) { return a.time - b.time; });
+
+  var unpaid = PEOPLE
+    .filter(function(p) { return !p[1]; })
+    .map(function(p) { return { name: p[0] }; });
+
+  var total = PEOPLE.length;
+  var paidCount = paid.length;
+  var pct = Math.round((paidCount / total) * 100);
+
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-counts').innerHTML =
+    '<span>' + paidCount + ' paid</span><span>' + unpaid.length + ' remaining</span>';
+
+  document.getElementById('meta-bar').innerHTML =
+    '<span class="meta-item">Start: <strong>' + fmtDate(startDate) + '</strong></span>' +
+    '<span class="meta-item">Deadline: <strong>' + fmtDate(deadlineDate) + '</strong></span>' +
+    '<span class="meta-item">Last updated: <strong>' + fmtDate(updateDate) + '</strong></span>';
+
+  var html = '';
+
+  // Finished column
+  html += '<div class="column">' +
+    '<div class="column-header">' +
+      '<span class="column-title">Finished</span>' +
+      '<span class="column-count">' + paidCount + ' / ' + total + '</span>' +
+    '</div>' +
+    '<div class="card-list">';
+
+  paid.forEach(function(p, i) {
+    var rank = i + 1;
+    var el = elapsed(startDate, p.time);
+    html +=
+      '<div class="person-row" style="animation-delay:' + (i * 0.05) + 's">' +
+        '<div class="rank ' + rankClass(rank) + '">' + rankLabel(rank) + '</div>' +
+        '<div class="person-info">' +
+          '<div class="person-name">' + p.name + '</div>' +
+          '<div class="person-sub">' + fmtDate(p.time) + '</div>' +
+        '</div>' +
+        '<div class="person-right">' +
+          '<div class="elapsed-time">' + el + '</div>' +
+          '<div class="pay-datetime">response time</div>' +
+        '</div>' +
+      '</div>';
+  });
+
+  if (paidCount === 0) {
+    html += '<div class="empty-msg">No payments recorded yet.</div>';
+  }
+  html += '</div></div>';
+
+  // Unpaid column
+  var colTitle = isExpired ? 'Failed' : 'Pending';
+
+  html += '<div class="column">' +
+    '<div class="column-header">' +
+      '<span class="column-title">' + colTitle + '</span>' +
+      '<span class="column-count">' + unpaid.length + '</span>' +
+    '</div>' +
+    '<div class="card-list">';
+
+  unpaid.forEach(function(p, i) {
+    var tagClass = isExpired ? 'overdue' : 'pending';
+    var tagText  = isExpired ? 'Overdue' : 'Pending';
+    html +=
+      '<div class="person-row" style="animation-delay:' + (i * 0.05) + 's">' +
+        '<div class="rank" style="opacity:.25">\u2014</div>' +
+        '<div class="person-info">' +
+          '<div class="person-name">' + p.name + '</div>' +
+        '</div>' +
+        '<div class="person-right">' +
+          '<span class="status-tag ' + tagClass + '">' + tagText + '</span>' +
+        '</div>' +
+      '</div>';
+  });
+
+  if (unpaid.length === 0) {
+    html += '<div class="empty-msg">All payments received.</div>';
+  }
+  html += '</div></div>';
+
+  document.getElementById('columns').innerHTML = html;
+}
+
+render();
+updateCountdown();
+setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>
